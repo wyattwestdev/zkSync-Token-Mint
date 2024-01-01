@@ -1,0 +1,14 @@
+__pycache__
+.env
+.history
+.hypothesis/
+.vscode/
+build/
+reports/
+example/
+node_modules/
+@layerzerolabs/
+redstone-evm-connector/
+ado-contracts/
+bin/
+brownie-config.yaml
