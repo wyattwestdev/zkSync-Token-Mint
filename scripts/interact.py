@@ -25,38 +25,65 @@ def menu(account, contract, active_chain):
         option = input('\nChoose a menu option: ')
 
         try:
+
+            tx = None
+
             if (option.isnumeric()):
+
                 if (int(option) == 1):
                     amount = input('\nChoose the amount to be minted: ')
-                    mint(account, contract, amount)            
+                    tx = mint(account, contract, amount)            
                 elif (int(option) == 2):
                     amount = input('\nChoose the amount to be burned: ')
-                    burn(account, contract, amount)
+                    tx = burn(account, contract, amount)
                 elif (int(option) == 3):
                     amount = input('\nChoose the amount to be burned from the supply: ')
-                    burnSupply(account, contract, amount)   
+                    tx = burnSupply(account, contract, amount)   
                 elif (int(option) == 4):
                     amount = input('\nChoose the amount to be added to the supply: ')
-                    increaseSupply(account, contract, amount)        
+                    tx = increaseSupply(account, contract, amount)   
+
+                total_fee = totalFeeCalculator(active_chain, tx)
+
+                if tx != None:
+                    
+                    print(f'Total tx fee = {total_fee}.')     
+
         except ValueError as exception:
+
             print(exception)
 
 def mint(account, contract, amount):
 
-    contract.mint(amount, {"from": account})
+    return contract.mint(amount, {"from": account})
 
 def burn(account, contract, amount):
 
-    contract.burn(amount, {"from": account})
+    return contract.burn(amount, {"from": account})
 
 def burnSupply(account, contract, amount):
     
-    contract.burnSupply(amount, {"from": account})
+    return contract.burnSupply(amount, {"from": account})
 
 def increaseSupply(account, contract, amount):
     
-    contract.increaseSupply(amount, {"from": account})
+    return contract.increaseSupply(amount, {"from": account})
 
+def totalFeeCalculator(active_chain, tx) -> int:
+
+    total_fee = 0
+
+    if tx != None:
+
+        gas_price = web3.eth.getTransaction(tx.txid).gasPrice
+        gas_used = web3.eth.getTransactionReceipt(tx.txid).gasUsed
+        l1_fee = Web3.toInt(hexstr=web3.eth.getTransactionReceipt(tx.txid).l1Fee) if (active_chain == 'Scroll' or active_chain == 'Base') else 0
+
+        total_fee = int(l1_fee + (gas_price * gas_used) / (10 ** 26))
+    
+    return total_fee
+
+# brownie run scripts/interact.py --network zkSync
 def main():
 
     active_chain = network.show_active()
